@@ -4,7 +4,7 @@ const sendButton = document.querySelector("#send");
 const messagesList = document.querySelector("#messages");
 const error = document.querySelector("#error");
 
-const server = "http://127.0.0.1:3000";
+const server = "https://mcc7a7ee5emoct93laditnv2.trainees.hosting.cyf.academy";
 
 async function loadMessages() {
   try {
