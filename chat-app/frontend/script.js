@@ -1,3 +1,4 @@
+const usernameInput = document.querySelector("#username");
 const messageInput = document.querySelector("#message");
 const sendButton = document.querySelector("#send");
 const messagesList = document.querySelector("#messages");
