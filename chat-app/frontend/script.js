@@ -1,36 +1,63 @@
-const usernameInput = document.querySelector("#username");
 const messageInput = document.querySelector("#message");
 const sendButton = document.querySelector("#send");
 const messagesList = document.querySelector("#messages");
 const error = document.querySelector("#error");
 
-const server = "https://mcc7a7ee5emoct93laditnv2.trainees.hosting.cyf.academy";
+const server =
+  "https://mcc7a7ee5emoct93laditnv2.trainees.hosting.cyf.academy";
 
-async function loadMessages() {
+let messages = [];
+
+function render() {
+  messagesList.innerHTML = "";
+
+  for (const message of messages) {
+    const li = document.createElement("li");
+
+    const time = new Date(message.timestamp).toLocaleTimeString();
+
+    li.textContent =
+      `${message.username}: ${message.message} (${time})`;
+
+    messagesList.appendChild(li);
+  }
+}
+
+async function keepFetchingMessages() {
   try {
-    const response = await fetch(`${server}/messages`);
+    const lastMessageTime =
+      messages.length > 0
+        ? messages[messages.length - 1].timestamp
+        : null;
+
+    const queryString =
+      lastMessageTime
+        ? `?since=${lastMessageTime}&longPoll=true`
+        : "?longPoll=true";
+
+    const response = await fetch(
+      `${server}/messages${queryString}`
+    );
 
     if (!response.ok) {
-      error.textContent = "Failed to load messages.";
+      error.textContent = "Failed to get messages.";
+      setTimeout(keepFetchingMessages, 1000);
       return;
     }
 
-    const messages = await response.json();
+    const newMessages = await response.json();
 
-    messagesList.innerHTML = "";
+    messages.push(...newMessages);
 
-    for (const message of messages) {
-      const li = document.createElement("li");
+    render();
 
-      const time = new Date(message.timestamp).toLocaleTimeString();
+    keepFetchingMessages();
 
-      li.textContent =
-        `${message.username}: ${message.message} (${time})`;
-
-      messagesList.appendChild(li);
-    }
   } catch (err) {
-    error.textContent = "Could not connect to the backend.";
+    error.textContent =
+      "Could not connect to the backend.";
+
+    setTimeout(keepFetchingMessages, 1000);
   }
 }
 
@@ -69,14 +96,12 @@ async function sendMessage() {
     error.textContent = "";
     messageInput.value = "";
 
-    await loadMessages();
-
   } catch (err) {
     error.textContent =
-      "Could not connect to the backend. Is it running?";
+      "Could not connect to the backend.";
   }
 }
 
 sendButton.addEventListener("click", sendMessage);
 
-loadMessages();
+keepFetchingMessages();
